@@ -93,12 +93,12 @@ jobs:
           bench new-site --db-type postgres --db-root-password root --admin-password admin test_site
           bench --site test_site install-app erpnext
           bench --site test_site install-app erpnext_india
-          bench --site test_site install-app india_compliance
           bench --site test_site install-app assets
           bench --site test_site install-app crm
           bench --site test_site install-app projects
           bench --site test_site install-app payments
           bench --site test_site install-app sales_commission
+          bench --site test_site install-app india_compliance
           
           
         env:
