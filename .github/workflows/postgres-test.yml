@@ -82,6 +82,7 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: |
           bench get-app erpnext https://github.com/nirav8848/erpnext.git --branch pre-prod
+          bench get-app https://itananddigital:${{secrets.GH_PAT}}@github.com/8848digital/ERPNext-India.git --branch pre-prod
           bench get-app https://github.com/8848digital/Assets --branch pre-prod
           bench get-app https://itananddigital:${{secrets.GH_PAT}}@github.com/8848digital/CRM --branch pre-prod
           bench get-app https://itananddigital:${{secrets.GH_PAT}}@github.com/8848digital/projects.git --branch pre-prod
@@ -90,6 +91,7 @@ jobs:
           bench setup requirements --dev
           bench new-site --db-type postgres --db-root-password root --admin-password admin test_site
           bench --site test_site install-app erpnext
+          bench --site test_site install-app erpnext_india
           bench --site test_site install-app assets
           bench --site test_site install-app crm
           bench --site test_site install-app projects
@@ -126,12 +128,7 @@ jobs:
       #   env:
       #     TYPE: server
 
-      - name: Create Admin User
-        working-directory: /home/runner/frappe-bench
-        run: |
-          bench --site test_site execute frappe.get_doc --args '["User", {"email": "admin@example.com", "first_name": "Admin", "send_welcome_email": 0}]' --kwargs '{}'
-          bench --site test_site execute frappe.utils.password.set_user_password --args '["admin@example.com", "admin"]'
-          bench --site test_site execute "lambda: (doc := frappe.get_doc('User', 'admin@example.com')).append('roles', {'role': 'System Manager'}) or doc.save()"
+      
 
 
       - name: Run Tests
