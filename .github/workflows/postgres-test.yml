@@ -70,8 +70,8 @@ jobs:
         run: |
           pip3 install frappe-bench
           bench init --skip-redis-config-generation --skip-assets --python "$(which python)" --frappe-path https://github.com/8848digital/frappe-v15.git --frappe-branch pre-prod ~/frappe-bench
-            
 
+          
 
       # - name: Setup Frappe
       #   working-directory: /home/runner/frappe-bench
@@ -81,19 +81,31 @@ jobs:
       - name: Install
         working-directory: /home/runner/frappe-bench
         run: |
-          bench get-app erpnext https://github.com/8848digital/erpnext.git --branch pre-prod
+          bench get-app erpnext https://github.com/nirav8848/erpnext.git --branch pre-prod
+          bench get-app https://github.com/8848digital/Assets --branch pre-prod
+          bench get-app https://itananddigital:${{secrets.GH_PAT}}@github.com/8848digital/CRM --branch pre-prod
+          bench get-app https://itananddigital:${{secrets.GH_PAT}}@github.com/8848digital/projects.git --branch pre-prod
+          bench get-app https://itananddigital:${{secrets.GH_PAT}}@github.com/8848digital/sales_commission.git --branch pre-prod
+          bench get-app --branch version-15 payments
           bench setup requirements --dev
           bench new-site --db-type postgres --db-root-password root --admin-password admin test_site
           bench --site test_site install-app erpnext
+          bench --site test_site install-app assets
+          bench --site test_site install-app crm
+          bench --site test_site install-app projects
+          bench --site test_site install-app payments
+          bench --site test_site install-app sales_commission
+          
+          
         env:
           CI: 'Yes'
-      # - name: Run Tests
-      #   working-directory: /home/runner/frappe-bench
-      #   run: |
-      #     bench --site test_site set-config allow_tests true
-      #     bench --site test_site run-tests 
-      #   env:
-      #     TYPE: server
+  #    - name: Run Tests
+      #  working-directory: /home/runner/frappe-bench
+     #   run: |
+       #   bench --site test_site set-config allow_tests true
+       #   bench --site test_site run-tests 
+      #  env:
+    #      TYPE: server
       # - name: Run Tests
       #   run: cd ~/frappe-bench/ && bench --site test_site run-tests --app erpnext  --coverage  || echo "Tests completed with errors, but proceeding..."
       #   env:
@@ -105,15 +117,24 @@ jobs:
       #   env:
       #     TYPE: server
 
+      # - name: Run Tests
+      #   run: |
+      #     set +e  # Prevents script from exiting on error
+      #     cd ~/frappe-bench/
+      #     bench --site test_site run-tests --app erpnext --coverage 2>&1 | tee test_output.log
+      #     echo "Tests completed, proceeding with next steps..."
+      #   env:
+      #     TYPE: server
+
+
       - name: Run Tests
+        working-directory: /home/runner/frappe-bench
         run: |
-          set +e  # Prevents script from exiting on error
-          cd ~/frappe-bench/
-          bench --site test_site execute frappe.auth.login_as --args '["Administrator"]'
-          bench --site test_site run-tests --app erpnext --coverage 2>&1 | tee test_output.log
-          echo "Tests completed, proceeding with next steps..."
+          bench --site test_site set-config allow_tests true
+          bench --site test_site run-tests --app erpnext  --coverage  || echo "Tests completed with errors, but proceeding..."
         env:
           TYPE: server
+     
 
 
           
@@ -124,3 +145,10 @@ jobs:
           files: /home/runner/frappe-bench/sites/coverage.xml
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
+
+
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-
+          path: /home/runner/frappe-bench/sites/coverage.xml
