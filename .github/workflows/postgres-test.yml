@@ -126,6 +126,13 @@ jobs:
       #   env:
       #     TYPE: server
 
+      - name: Create Admin User
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test_site execute frappe.get_doc --args '["User", {"email": "admin@example.com", "first_name": "Admin", "send_welcome_email": 0}]' --kwargs '{}'
+          bench --site test_site execute frappe.utils.password.set_user_password --args '["admin@example.com", "admin"]'
+          bench --site test_site execute "lambda: (doc := frappe.get_doc('User', 'admin@example.com')).append('roles', {'role': 'System Manager'}) or doc.save()"
+
 
       - name: Run Tests
         working-directory: /home/runner/frappe-bench
